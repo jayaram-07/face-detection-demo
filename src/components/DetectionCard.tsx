@@ -14,10 +14,16 @@ export function DetectionCard({ children }: DetectionCardProps) {
       className="relative group mx-auto max-w-4xl w-full"
     >
       {/* Glowing background effect */}
-      <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl blur opacity-30 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+      <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500 to-blue-600 blur opacity-20 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
       
       {/* Card content */}
-      <div className="relative bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl overflow-hidden shadow-2xl min-h-[400px] flex flex-col items-center justify-center p-4">
+      <div className="relative bg-slate-950/80 backdrop-blur-xl border border-cyan-500/30 overflow-hidden shadow-2xl min-h-[400px] flex flex-col items-center justify-center p-4">
+        {/* Corner brackets */}
+        <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-cyan-500/50"></div>
+        <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-cyan-500/50"></div>
+        <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-cyan-500/50"></div>
+        <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-cyan-500/50"></div>
+        
         {children}
       </div>
     </motion.div>

@@ -8,24 +8,24 @@ interface ModeTabsProps {
 
 export function ModeTabs({ mode, setMode }: ModeTabsProps) {
   const tabs: { id: DetectionMode; label: string }[] = [
-    { id: 'upload', label: 'Upload Image' },
-    { id: 'camera', label: 'Live Camera' },
+    { id: 'upload', label: 'IMAGE_UPLOAD' },
+    { id: 'camera', label: 'LIVE_FEED' },
   ];
 
   return (
-    <div className="flex space-x-1 bg-slate-800/50 backdrop-blur-md p-1 rounded-xl border border-slate-700/50 w-fit mx-auto mb-8">
+    <div className="flex space-x-2 bg-slate-950/80 backdrop-blur-md p-1 border border-cyan-500/30 w-fit mx-auto mb-8 font-mono text-sm">
       {tabs.map((tab) => (
         <button
           key={tab.id}
           onClick={() => setMode(tab.id)}
-          className={`relative px-6 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200 outline-none ${
-            mode === tab.id ? 'text-white' : 'text-slate-400 hover:text-slate-200'
+          className={`relative px-6 py-2.5 font-bold tracking-widest transition-colors duration-200 outline-none uppercase ${
+            mode === tab.id ? 'text-slate-950' : 'text-cyan-600 hover:text-cyan-400'
           }`}
         >
           {mode === tab.id && (
             <motion.div
               layoutId="active-tab"
-              className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg shadow-lg"
+              className="absolute inset-0 bg-cyan-400 shadow-[0_0_10px_rgba(0,255,255,0.5)]"
               initial={false}
               transition={{ type: 'spring', stiffness: 400, damping: 30 }}
             />

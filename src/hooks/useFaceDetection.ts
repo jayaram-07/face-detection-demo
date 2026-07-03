@@ -5,9 +5,16 @@ const MODELS_URL = 'https://justadudewhohacks.github.io/face-api.js/models';
 
 export type DetectionMode = 'upload' | 'camera';
 
+export interface FaceDetail {
+  box: { x: number; y: number; width: number; height: number };
+  score: number;
+  dominantExpression: string;
+}
+
 export interface FaceStats {
   count: number;
   expressions: Record<string, number>;
+  faces: FaceDetail[];
 }
 
 export function useFaceDetection() {
@@ -17,7 +24,7 @@ export function useFaceDetection() {
   const [mode, setMode] = useState<DetectionMode>('upload');
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [stats, setStats] = useState<FaceStats>({ count: 0, expressions: {} });
+  const [stats, setStats] = useState<FaceStats>({ count: 0, expressions: {}, faces: [] });
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
@@ -82,7 +89,7 @@ export function useFaceDetection() {
         ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
       }
     }
-    setStats({ count: 0, expressions: {} });
+    setStats({ count: 0, expressions: {}, faces: [] });
   };
 
   const toggleCamera = () => {
@@ -127,24 +134,82 @@ export function useFaceDetection() {
     const ctx = canvasRef.current.getContext('2d');
     if (ctx) {
       ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-    }
 
-    faceapi.draw.drawDetections(canvasRef.current, resizedDetections);
-    faceapi.draw.drawFaceLandmarks(canvasRef.current, resizedDetections);
+      const time = Date.now() / 1000;
+
+      resizedDetections.forEach(det => {
+        const { x, y, width, height } = det.detection.box;
+        
+        // Draw corner brackets
+        const length = Math.min(width, height) * 0.2;
+        ctx.strokeStyle = '#00ffff';
+        ctx.lineWidth = 2;
+        
+        ctx.beginPath();
+        // Top-left
+        ctx.moveTo(x, y + length);
+        ctx.lineTo(x, y);
+        ctx.lineTo(x + length, y);
+        // Top-right
+        ctx.moveTo(x + width - length, y);
+        ctx.lineTo(x + width, y);
+        ctx.lineTo(x + width, y + length);
+        // Bottom-right
+        ctx.moveTo(x + width, y + height - length);
+        ctx.lineTo(x + width, y + height);
+        ctx.lineTo(x + width - length, y + height);
+        // Bottom-left
+        ctx.moveTo(x + length, y + height);
+        ctx.lineTo(x, y + height);
+        ctx.lineTo(x, y + height - length);
+        ctx.stroke();
+
+        // Draw scan line
+        const scanY = y + (time % 2) / 2 * height;
+        ctx.beginPath();
+        ctx.moveTo(x, scanY);
+        ctx.lineTo(x + width, scanY);
+        ctx.strokeStyle = 'rgba(0, 255, 255, 0.5)';
+        ctx.stroke();
+
+        // Draw landmarks
+        const landmarks = det.landmarks.positions;
+        ctx.fillStyle = `rgba(0, 255, 255, ${0.5 + Math.sin(time * 5) * 0.5})`;
+        landmarks.forEach(pt => {
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, 1.5, 0, 2 * Math.PI);
+          ctx.fill();
+        });
+      });
+    }
 
     // Aggregate stats
     let dominantExpressions: Record<string, number> = {};
+    const faces: FaceDetail[] = [];
+
     if (detections.length > 0) {
       detections.forEach(det => {
         const sorted = Object.entries(det.expressions).sort((a, b) => b[1] - a[1]);
         const dominant = sorted[0][0];
         dominantExpressions[dominant] = (dominantExpressions[dominant] || 0) + 1;
+        
+        faces.push({
+          box: {
+            x: det.detection.box.x,
+            y: det.detection.box.y,
+            width: det.detection.box.width,
+            height: det.detection.box.height
+          },
+          score: det.detection.score,
+          dominantExpression: dominant
+        });
       });
     }
 
     setStats({
       count: detections.length,
-      expressions: dominantExpressions
+      expressions: dominantExpressions,
+      faces
     });
   }, [isLoaded]);
 
@@ -180,7 +245,7 @@ export function useFaceDetection() {
           ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
         }
       }
-      setStats({ count: 0, expressions: {} });
+      setStats({ count: 0, expressions: {}, faces: [] });
     }
   }, [mode]);
 
