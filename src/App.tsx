@@ -12,6 +12,7 @@ function App() {
   const {
     isLoading,
     error,
+    imageError,
     mode,
     setMode,
     isCameraActive,
@@ -23,6 +24,7 @@ function App() {
     canvasRef,
     onVideoPlay,
     onImageLoad,
+    onImageError,
     stats,
     hasDetected
   } = useFaceDetection();
@@ -56,12 +58,18 @@ function App() {
                     <span>Choose Image</span>
                     <input
                       type="file"
-                      accept="image/*"
+                      accept="image/jpeg,image/png,image/webp"
                       className="hidden"
                       onChange={handleImageUpload}
                     />
                   </MagneticButton>
                   
+                  {imageError && (
+                    <div className="mb-6 text-center p-4 bg-red-900/20 border border-red-500/50 rounded-lg text-red-400 max-w-md mx-auto text-sm">
+                      {imageError}
+                    </div>
+                  )}
+
                   <div className="relative w-full flex justify-center">
                     {imageUrl && (
                       <img
@@ -70,6 +78,7 @@ function App() {
                         alt="Upload preview"
                         className="max-w-full max-h-[60vh] rounded-lg object-contain"
                         onLoad={onImageLoad}
+                        onError={onImageError}
                       />
                     )}
                     <canvas

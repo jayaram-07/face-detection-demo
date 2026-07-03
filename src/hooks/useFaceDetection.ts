@@ -21,6 +21,7 @@ export function useFaceDetection() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [imageError, setImageError] = useState<string | null>(null);
   const [mode, setMode] = useState<DetectionMode>('upload');
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
@@ -107,6 +108,7 @@ export function useFaceDetection() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    setImageError(null);
     setHasDetected(false);
     const reader = new FileReader();
     reader.onload = (event) => {
@@ -257,9 +259,15 @@ export function useFaceDetection() {
     }
   }, [detectFaces]);
 
+  const onImageError = useCallback(() => {
+    setImageError("Couldn't load this image — HEIC/HEIF photos aren't supported by browsers. Please use a JPG, PNG, or WebP image instead.");
+    setImageUrl(null);
+  }, []);
+
   // Handle mode switch
   useEffect(() => {
     setHasDetected(false);
+    setImageError(null);
     if (mode === 'upload') {
       stopCamera();
     } else {
@@ -278,6 +286,7 @@ export function useFaceDetection() {
     isLoaded,
     isLoading,
     error,
+    imageError,
     mode,
     setMode,
     isCameraActive,
@@ -289,6 +298,7 @@ export function useFaceDetection() {
     canvasRef,
     onVideoPlay,
     onImageLoad,
+    onImageError,
     stats,
     hasDetected
   };
