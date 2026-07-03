@@ -123,7 +123,7 @@ export function useFaceDetection() {
     if (!isLoaded || !canvasRef.current) return;
 
     const detections = await faceapi
-      .detectAllFaces(element, new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.3 }))
+      .detectAllFaces(element, new faceapi.TinyFaceDetectorOptions({ inputSize: 512, scoreThreshold: 0.3 }))
       .withFaceLandmarks()
       .withFaceExpressions();
 
