@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Hero } from './components/Hero';
 import { ModeTabs } from './components/ModeTabs';
 import { DetectionCard } from './components/DetectionCard';
@@ -18,6 +19,8 @@ function App() {
     isCameraActive,
     toggleCamera,
     handleImageUpload,
+    processImageFile,
+    loadImageFromUrl,
     imageUrl,
     videoRef,
     imageRef,
@@ -28,6 +31,27 @@ function App() {
     stats,
     hasDetected
   } = useFaceDetection();
+
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      processImageFile(file);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-50 pb-20 relative overflow-hidden">
@@ -50,10 +74,20 @@ function App() {
 
             <DetectionCard>
               {mode === 'upload' && (
-                <div className="w-full flex flex-col items-center">
+                <div 
+                  className={`w-full flex flex-col items-center relative transition-colors duration-200 ${isDragging ? 'bg-cyan-900/20 rounded-xl' : ''}`}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                >
+                  {isDragging && (
+                    <div className="absolute inset-0 z-50 flex items-center justify-center border-2 border-dashed border-cyan-400 bg-slate-950/80 rounded-xl backdrop-blur-sm">
+                      <span className="text-2xl font-mono text-cyan-400 font-bold tracking-widest">DROP IMAGE TO SCAN</span>
+                    </div>
+                  )}
                   <MagneticButton 
                     as="label"
-                    className="mb-6 cursor-pointer group relative inline-flex items-center justify-center px-8 py-3 font-bold text-cyan-400 transition-all duration-200 bg-slate-900/80 border border-cyan-500/50 hover:bg-cyan-900/30 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-600 focus:ring-offset-slate-900 shadow-[0_0_15px_rgba(0,255,255,0.2)] uppercase tracking-widest font-mono text-sm"
+                    className="mb-4 cursor-pointer group relative inline-flex items-center justify-center px-8 py-3 font-bold text-cyan-400 transition-all duration-200 bg-slate-900/80 border border-cyan-500/50 hover:bg-cyan-900/30 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-600 focus:ring-offset-slate-900 shadow-[0_0_15px_rgba(0,255,255,0.2)] uppercase tracking-widest font-mono text-sm"
                   >
                     <span>Choose Image</span>
                     <input
@@ -63,6 +97,24 @@ function App() {
                       onChange={handleImageUpload}
                     />
                   </MagneticButton>
+                  
+                  <div className="mb-6 flex flex-col items-center gap-2">
+                    <span className="text-xs font-mono text-cyan-600 tracking-widest">OR TRY A SAMPLE:</span>
+                    <div className="flex gap-4">
+                      <button 
+                        onClick={() => loadImageFromUrl('/samples/portrait.jpg')}
+                        className="w-20 h-20 border border-cyan-500/30 hover:border-cyan-400 hover:shadow-[0_0_10px_rgba(0,255,255,0.3)] transition-all overflow-hidden rounded"
+                      >
+                        <img src="/samples/portrait.jpg" alt="Portrait sample" className="w-full h-full object-cover" />
+                      </button>
+                      <button 
+                        onClick={() => loadImageFromUrl('/samples/group.jpg')}
+                        className="w-20 h-20 border border-cyan-500/30 hover:border-cyan-400 hover:shadow-[0_0_10px_rgba(0,255,255,0.3)] transition-all overflow-hidden rounded"
+                      >
+                        <img src="/samples/group.jpg" alt="Group sample" className="w-full h-full object-cover" />
+                      </button>
+                    </div>
+                  </div>
                   
                   {imageError && (
                     <div className="mb-6 text-center p-4 bg-red-900/20 border border-red-500/50 rounded-lg text-red-400 max-w-md mx-auto text-sm">

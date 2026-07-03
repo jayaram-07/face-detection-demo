@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import * as faceapi from 'face-api.js';
 
-const MODELS_URL = 'https://justadudewhohacks.github.io/face-api.js/models';
+const MODELS_URL = '/models';
 
 export type DetectionMode = 'upload' | 'camera';
 
@@ -9,6 +9,10 @@ export interface FaceDetail {
   box: { x: number; y: number; width: number; height: number };
   score: number;
   dominantExpression: string;
+  age: number;
+  gender: string;
+  genderProbability: number;
+  expressions: Record<string, number>;
 }
 
 export interface FaceStats {
@@ -33,6 +37,7 @@ export function useFaceDetection() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationFrameRef = useRef<number | null>(null);
   const previousScoresRef = useRef<number[]>([]);
+  const previousAgesRef = useRef<number[]>([]);
 
   // Load models
   useEffect(() => {
@@ -43,11 +48,12 @@ export function useFaceDetection() {
           faceapi.nets.tinyFaceDetector.loadFromUri(MODELS_URL),
           faceapi.nets.faceLandmark68Net.loadFromUri(MODELS_URL),
           faceapi.nets.faceExpressionNet.loadFromUri(MODELS_URL),
+          faceapi.nets.ageGenderNet.loadFromUri(MODELS_URL),
         ]);
         setIsLoaded(true);
-      } catch (err) {
+      } catch (err: any) {
         console.error('Failed to load face-api models:', err);
-        setError('Failed to load detection models. Please check your connection.');
+        setError(`Failed to load detection models: ${err.message || err}`);
       } finally {
         setIsLoading(false);
       }
@@ -104,10 +110,7 @@ export function useFaceDetection() {
     }
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  const processImageFile = (file: File) => {
     setImageError(null);
     setHasDetected(false);
     const reader = new FileReader();
@@ -119,13 +122,34 @@ export function useFaceDetection() {
     reader.readAsDataURL(file);
   };
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    processImageFile(file);
+  };
+
+  const loadImageFromUrl = async (url: string) => {
+    try {
+      setImageError(null);
+      setHasDetected(false);
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      setImageUrl(objectUrl);
+    } catch (err) {
+      console.error('Failed to load sample image:', err);
+      setImageError('Failed to load sample image.');
+    }
+  };
+
   const detectFaces = useCallback(async (element: HTMLVideoElement | HTMLImageElement) => {
     if (!isLoaded || !canvasRef.current) return;
 
     const detections = await faceapi
       .detectAllFaces(element, new faceapi.TinyFaceDetectorOptions({ inputSize: 512, scoreThreshold: 0.5 }))
       .withFaceLandmarks()
-      .withFaceExpressions();
+      .withFaceExpressions()
+      .withAgeAndGender();
 
     const displaySize = {
       width: element.width || element.clientWidth,
@@ -218,6 +242,12 @@ export function useFaceDetection() {
         }
         previousScoresRef.current[index] = smoothedScore;
 
+        let smoothedAge = det.age;
+        if (previousAgesRef.current[index] !== undefined) {
+          smoothedAge = (previousAgesRef.current[index] + det.age) / 2;
+        }
+        previousAgesRef.current[index] = smoothedAge;
+
         faces.push({
           box: {
             x: det.detection.box.x,
@@ -226,12 +256,18 @@ export function useFaceDetection() {
             height: det.detection.box.height
           },
           score: smoothedScore,
-          dominantExpression: dominant
+          dominantExpression: dominant,
+          age: Math.round(smoothedAge),
+          gender: det.gender,
+          genderProbability: det.genderProbability,
+          expressions: det.expressions as unknown as Record<string, number>
         });
       });
       previousScoresRef.current = previousScoresRef.current.slice(0, detections.length);
+      previousAgesRef.current = previousAgesRef.current.slice(0, detections.length);
     } else {
       previousScoresRef.current = [];
+      previousAgesRef.current = [];
     }
 
     setStats({
@@ -305,6 +341,8 @@ export function useFaceDetection() {
     isCameraActive,
     toggleCamera,
     handleImageUpload,
+    processImageFile,
+    loadImageFromUrl,
     imageUrl,
     videoRef,
     imageRef,
