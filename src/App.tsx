@@ -58,7 +58,7 @@ function App() {
                     <span>Choose Image</span>
                     <input
                       type="file"
-                      accept="image/jpeg,image/png,image/webp"
+                      accept="image/*"
                       className="hidden"
                       onChange={handleImageUpload}
                     />
