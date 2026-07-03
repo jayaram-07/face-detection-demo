@@ -14,6 +14,7 @@ function App() {
     isCameraActive,
     toggleCamera,
     handleImageUpload,
+    imageUrl,
     videoRef,
     imageRef,
     canvasRef,
@@ -51,13 +52,16 @@ function App() {
                   </label>
                   
                   <div className="relative w-full flex justify-center">
-                    <img
-                      ref={imageRef}
-                      alt="Upload preview"
-                      className="max-w-full max-h-[60vh] rounded-lg object-contain"
-                      onLoad={onImageLoad}
-                      crossOrigin="anonymous"
-                    />
+                    {imageUrl && (
+                      <img
+                        ref={imageRef}
+                        src={imageUrl}
+                        alt="Upload preview"
+                        className="max-w-full max-h-[60vh] rounded-lg object-contain"
+                        onLoad={onImageLoad}
+                        crossOrigin="anonymous"
+                      />
+                    )}
                     <canvas
                       ref={canvasRef}
                       className="absolute top-0 left-1/2 -translate-x-1/2 pointer-events-none"

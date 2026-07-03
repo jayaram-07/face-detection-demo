@@ -16,6 +16,7 @@ export function useFaceDetection() {
   const [error, setError] = useState<string | null>(null);
   const [mode, setMode] = useState<DetectionMode>('upload');
   const [isCameraActive, setIsCameraActive] = useState(false);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [stats, setStats] = useState<FaceStats>({ count: 0, expressions: {} });
 
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -94,12 +95,12 @@ export function useFaceDetection() {
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !imageRef.current) return;
+    if (!file) return;
 
     const reader = new FileReader();
     reader.onload = (event) => {
-      if (imageRef.current && event.target?.result) {
-        imageRef.current.src = event.target.result as string;
+      if (event.target?.result) {
+        setImageUrl(event.target.result as string);
       }
     };
     reader.readAsDataURL(file);
@@ -192,6 +193,7 @@ export function useFaceDetection() {
     isCameraActive,
     toggleCamera,
     handleImageUpload,
+    imageUrl,
     videoRef,
     imageRef,
     canvasRef,
