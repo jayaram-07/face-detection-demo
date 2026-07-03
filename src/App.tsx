@@ -69,7 +69,6 @@ function App() {
                         alt="Upload preview"
                         className="max-w-full max-h-[60vh] rounded-lg object-contain"
                         onLoad={onImageLoad}
-                        crossOrigin="anonymous"
                       />
                     )}
                     <canvas

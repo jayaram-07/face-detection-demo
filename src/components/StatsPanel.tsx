@@ -26,7 +26,7 @@ export function StatsPanel({ stats }: StatsPanelProps) {
                   <ScrambleText text="[ BIOMETRIC SCAN RESULTS ]" />
                 </h3>
                 <div className="text-sm">
-                  FACES DETECTED: <ScrambleText text={stats.count.toString().padStart(2, '0')} />
+                  FACES DETECTED: {stats.count.toString().padStart(2, '0')}
                 </div>
               </div>
 
@@ -37,15 +37,15 @@ export function StatsPanel({ stats }: StatsPanelProps) {
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       <div>
                         <span className="text-cyan-600">CONFIDENCE:</span>{' '}
-                        <ScrambleText text={`${(face.score * 100).toFixed(1)}%`} />
+                        {(face.score * 100).toFixed(1)}%
                       </div>
                       <div>
                         <span className="text-cyan-600">EXPRESSION:</span>{' '}
-                        <ScrambleText text={face.dominantExpression.toUpperCase()} />
+                        {face.dominantExpression.toUpperCase()}
                       </div>
                       <div className="col-span-2">
                         <span className="text-cyan-600">BOUNDING_BOX:</span>{' '}
-                        <ScrambleText text={`X:${Math.round(face.box.x)} Y:${Math.round(face.box.y)} W:${Math.round(face.box.width)} H:${Math.round(face.box.height)}`} />
+                        X:{Math.round(face.box.x)} Y:{Math.round(face.box.y)} W:{Math.round(face.box.width)} H:{Math.round(face.box.height)}
                       </div>
                     </div>
                   </div>

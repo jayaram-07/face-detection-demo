@@ -30,6 +30,7 @@ export function useFaceDetection() {
   const imageRef = useRef<HTMLImageElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationFrameRef = useRef<number | null>(null);
+  const previousScoresRef = useRef<number[]>([]);
 
   // Load models
   useEffect(() => {
@@ -188,11 +189,17 @@ export function useFaceDetection() {
     const faces: FaceDetail[] = [];
 
     if (detections.length > 0) {
-      detections.forEach(det => {
+      detections.forEach((det, index) => {
         const sorted = Object.entries(det.expressions).sort((a, b) => b[1] - a[1]);
         const dominant = sorted[0][0];
         dominantExpressions[dominant] = (dominantExpressions[dominant] || 0) + 1;
         
+        let smoothedScore = det.detection.score;
+        if (previousScoresRef.current[index] !== undefined) {
+          smoothedScore = (previousScoresRef.current[index] + det.detection.score) / 2;
+        }
+        previousScoresRef.current[index] = smoothedScore;
+
         faces.push({
           box: {
             x: det.detection.box.x,
@@ -200,10 +207,13 @@ export function useFaceDetection() {
             width: det.detection.box.width,
             height: det.detection.box.height
           },
-          score: det.detection.score,
+          score: smoothedScore,
           dominantExpression: dominant
         });
       });
+      previousScoresRef.current = previousScoresRef.current.slice(0, detections.length);
+    } else {
+      previousScoresRef.current = [];
     }
 
     setStats({
@@ -217,9 +227,19 @@ export function useFaceDetection() {
   const onVideoPlay = useCallback(() => {
     if (!videoRef.current || !isCameraActive) return;
 
+    let lastDetectionTime = 0;
+    let isDetecting = false;
+
     const loop = async () => {
       if (videoRef.current && !videoRef.current.paused && !videoRef.current.ended) {
-        await detectFaces(videoRef.current);
+        const now = performance.now();
+        if (now - lastDetectionTime >= 150 && !isDetecting) {
+          lastDetectionTime = now;
+          isDetecting = true;
+          detectFaces(videoRef.current).finally(() => {
+            isDetecting = false;
+          });
+        }
         animationFrameRef.current = requestAnimationFrame(loop);
       }
     };
