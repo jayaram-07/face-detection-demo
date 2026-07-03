@@ -23,7 +23,8 @@ function App() {
     canvasRef,
     onVideoPlay,
     onImageLoad,
-    stats
+    stats,
+    hasDetected
   } = useFaceDetection();
 
   return (
@@ -115,7 +116,7 @@ function App() {
               )}
             </DetectionCard>
 
-            <StatsPanel stats={stats} />
+            <StatsPanel stats={stats} hasDetected={hasDetected} />
           </>
         )}
         </main>

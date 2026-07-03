@@ -25,6 +25,7 @@ export function useFaceDetection() {
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [stats, setStats] = useState<FaceStats>({ count: 0, expressions: {}, faces: [] });
+  const [hasDetected, setHasDetected] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
@@ -91,6 +92,7 @@ export function useFaceDetection() {
       }
     }
     setStats({ count: 0, expressions: {}, faces: [] });
+    setHasDetected(false);
   };
 
   const toggleCamera = () => {
@@ -105,6 +107,7 @@ export function useFaceDetection() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    setHasDetected(false);
     const reader = new FileReader();
     reader.onload = (event) => {
       if (event.target?.result) {
@@ -118,7 +121,7 @@ export function useFaceDetection() {
     if (!isLoaded || !canvasRef.current) return;
 
     const detections = await faceapi
-      .detectAllFaces(element, new faceapi.TinyFaceDetectorOptions())
+      .detectAllFaces(element, new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.3 }))
       .withFaceLandmarks()
       .withFaceExpressions();
 
@@ -221,6 +224,7 @@ export function useFaceDetection() {
       expressions: dominantExpressions,
       faces
     });
+    setHasDetected(true);
   }, [isLoaded]);
 
   // Loop for camera
@@ -255,6 +259,7 @@ export function useFaceDetection() {
 
   // Handle mode switch
   useEffect(() => {
+    setHasDetected(false);
     if (mode === 'upload') {
       stopCamera();
     } else {
@@ -284,6 +289,7 @@ export function useFaceDetection() {
     canvasRef,
     onVideoPlay,
     onImageLoad,
-    stats
+    stats,
+    hasDetected
   };
 }
