@@ -143,7 +143,7 @@ export function useFaceDetection() {
 
       const time = Date.now() / 1000;
 
-      resizedDetections.forEach(det => {
+      resizedDetections.forEach((det, index) => {
         const { x, y, width, height } = det.detection.box;
         
         // Draw corner brackets
@@ -186,6 +186,19 @@ export function useFaceDetection() {
           ctx.arc(pt.x, pt.y, 1.5, 0, 2 * Math.PI);
           ctx.fill();
         });
+
+        // Draw subject ID label
+        const subjectId = `#${String(index + 1).padStart(4, '0')}`;
+        ctx.font = 'bold 12px monospace';
+        const textWidth = ctx.measureText(subjectId).width;
+        
+        // Background rect
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+        ctx.fillRect(x, y - 20, textWidth + 8, 18);
+        
+        // Text
+        ctx.fillStyle = '#00ffff';
+        ctx.fillText(subjectId, x + 4, y - 6);
       });
     }
 
