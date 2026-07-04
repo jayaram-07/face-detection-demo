@@ -4,6 +4,7 @@ import { ModeTabs } from './components/ModeTabs';
 import { DetectionCard } from './components/DetectionCard';
 import { StatsPanel } from './components/StatsPanel';
 import { LoadingSpinner } from './components/LoadingSpinner';
+import { FaceMatch } from './components/FaceMatch';
 import { useFaceDetection } from './hooks/useFaceDetection';
 import { NetworkBackground } from './components/NetworkBackground';
 import { CursorSpotlight } from './components/CursorSpotlight';
@@ -29,10 +30,34 @@ function App() {
     onImageLoad,
     onImageError,
     stats,
-    hasDetected
+    hasDetected,
+    telemetry
   } = useFaceDetection();
 
   const [isDragging, setIsDragging] = useState(false);
+
+  const exportScan = () => {
+    const img = imageRef.current;
+    const overlay = canvasRef.current;
+    if (!img || !overlay) return;
+
+    const out = document.createElement('canvas');
+    out.width = overlay.width;
+    out.height = overlay.height;
+    const ctx = out.getContext('2d');
+    if (!ctx) return;
+    ctx.drawImage(img, 0, 0, out.width, out.height);
+    ctx.drawImage(overlay, 0, 0);
+    out.toBlob((blob) => {
+      if (!blob) return;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'biometric-scan.png';
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+    }, 'image/png');
+  };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -138,6 +163,15 @@ function App() {
                       className="absolute top-0 left-1/2 -translate-x-1/2 pointer-events-none"
                     />
                   </div>
+
+                  {hasDetected && stats.count > 0 && imageUrl && (
+                    <button
+                      onClick={exportScan}
+                      className="mt-6 px-6 py-2.5 font-mono font-bold text-xs uppercase tracking-widest text-cyan-400 border border-cyan-500/50 bg-slate-900/80 hover:bg-cyan-900/30 transition-all shadow-[0_0_15px_rgba(0,255,255,0.15)]"
+                    >
+                      ⤓ Export Scan
+                    </button>
+                  )}
                 </div>
               )}
 
@@ -153,6 +187,12 @@ function App() {
                   >
                     {isCameraActive ? 'Stop Camera' : 'Start Camera'}
                   </MagneticButton>
+
+                  {isCameraActive && (
+                    <div className="mb-4 font-mono text-[11px] tracking-widest text-cyan-500 border border-cyan-500/30 bg-slate-950/70 px-4 py-1.5">
+                      FPS: {telemetry.fps} | DETECT: {telemetry.detectMs}ms
+                    </div>
+                  )}
 
                   <div className="relative w-full flex justify-center bg-black/50 rounded-lg overflow-hidden min-h-[300px]">
                     <video
@@ -175,9 +215,10 @@ function App() {
                   </div>
                 </div>
               )}
+              {mode === 'match' && <FaceMatch />}
             </DetectionCard>
 
-            <StatsPanel stats={stats} hasDetected={hasDetected} />
+            {mode !== 'match' && <StatsPanel stats={stats} hasDetected={hasDetected} />}
           </>
         )}
         </main>

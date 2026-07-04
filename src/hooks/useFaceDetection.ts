@@ -3,7 +3,7 @@ import * as faceapi from 'face-api.js';
 
 const MODELS_URL = '/models';
 
-export type DetectionMode = 'upload' | 'camera';
+export type DetectionMode = 'upload' | 'camera' | 'match';
 
 export interface FaceDetail {
   box: { x: number; y: number; width: number; height: number };
@@ -31,6 +31,7 @@ export function useFaceDetection() {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [stats, setStats] = useState<FaceStats>({ count: 0, expressions: {}, faces: [] });
   const [hasDetected, setHasDetected] = useState(false);
+  const [telemetry, setTelemetry] = useState<{ fps: number; detectMs: number }>({ fps: 0, detectMs: 0 });
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
@@ -284,14 +285,29 @@ export function useFaceDetection() {
 
     let lastDetectionTime = 0;
     let isDetecting = false;
+    let frameCount = 0;
+    let lastTelemetryTime = performance.now();
+    let lastDetectMs = 0;
 
     const loop = async () => {
       if (videoRef.current && !videoRef.current.paused && !videoRef.current.ended) {
         const now = performance.now();
+        frameCount++;
+
+        // Publish telemetry at most twice per second
+        if (now - lastTelemetryTime >= 500) {
+          const fps = Math.round((frameCount * 1000) / (now - lastTelemetryTime));
+          setTelemetry({ fps, detectMs: Math.round(lastDetectMs) });
+          frameCount = 0;
+          lastTelemetryTime = now;
+        }
+
         if (now - lastDetectionTime >= 150 && !isDetecting) {
           lastDetectionTime = now;
           isDetecting = true;
+          const detectStart = performance.now();
           detectFaces(videoRef.current).finally(() => {
+            lastDetectMs = performance.now() - detectStart;
             isDetecting = false;
           });
         }
@@ -317,9 +333,10 @@ export function useFaceDetection() {
   useEffect(() => {
     setHasDetected(false);
     setImageError(null);
-    if (mode === 'upload') {
+    if (mode !== 'camera') {
       stopCamera();
-    } else {
+    }
+    if (mode === 'camera' || mode === 'match') {
       // Clear image canvas
       if (canvasRef.current) {
         const ctx = canvasRef.current.getContext('2d');
@@ -351,6 +368,7 @@ export function useFaceDetection() {
     onImageLoad,
     onImageError,
     stats,
-    hasDetected
+    hasDetected,
+    telemetry
   };
 }

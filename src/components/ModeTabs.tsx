@@ -10,6 +10,7 @@ export function ModeTabs({ mode, setMode }: ModeTabsProps) {
   const tabs: { id: DetectionMode; label: string }[] = [
     { id: 'upload', label: 'IMAGE_UPLOAD' },
     { id: 'camera', label: 'LIVE_FEED' },
+    { id: 'match', label: 'FACE_MATCH' },
   ];
 
   return (
