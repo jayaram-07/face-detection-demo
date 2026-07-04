@@ -166,64 +166,55 @@ export function useFaceDetection() {
     if (ctx) {
       ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
 
-      const time = Date.now() / 1000;
+      const INK = '#17150f';
+      const GREASE = '#da2a1e';
+      const PAPER = '#e9e5dc';
 
       resizedDetections.forEach((det, index) => {
         const { x, y, width, height } = det.detection.box;
-        
-        // Draw corner brackets
-        const length = Math.min(width, height) * 0.2;
-        ctx.strokeStyle = '#00ffff';
-        ctx.lineWidth = 2;
-        
-        ctx.beginPath();
-        // Top-left
-        ctx.moveTo(x, y + length);
-        ctx.lineTo(x, y);
-        ctx.lineTo(x + length, y);
-        // Top-right
-        ctx.moveTo(x + width - length, y);
-        ctx.lineTo(x + width, y);
-        ctx.lineTo(x + width, y + length);
-        // Bottom-right
-        ctx.moveTo(x + width, y + height - length);
-        ctx.lineTo(x + width, y + height);
-        ctx.lineTo(x + width - length, y + height);
-        // Bottom-left
-        ctx.moveTo(x + length, y + height);
-        ctx.lineTo(x, y + height);
-        ctx.lineTo(x, y + height - length);
-        ctx.stroke();
+        const num = String(index + 1).padStart(2, '0');
 
-        // Draw scan line
-        const scanY = y + (time % 2) / 2 * height;
-        ctx.beginPath();
-        ctx.moveTo(x, scanY);
-        ctx.lineTo(x + width, scanY);
-        ctx.strokeStyle = 'rgba(0, 255, 255, 0.5)';
-        ctx.stroke();
-
-        // Draw landmarks
-        const landmarks = det.landmarks.positions;
-        ctx.fillStyle = `rgba(0, 255, 255, ${0.5 + Math.sin(time * 5) * 0.5})`;
-        landmarks.forEach(pt => {
+        // Landmarks — static retouch dots, quiet
+        ctx.fillStyle = 'rgba(23, 21, 15, 0.35)';
+        det.landmarks.positions.forEach(pt => {
           ctx.beginPath();
-          ctx.arc(pt.x, pt.y, 1.5, 0, 2 * Math.PI);
+          ctx.arc(pt.x, pt.y, 1, 0, 2 * Math.PI);
           ctx.fill();
         });
 
-        // Draw subject ID label
-        const subjectId = `#${String(index + 1).padStart(4, '0')}`;
-        ctx.font = 'bold 12px monospace';
-        const textWidth = ctx.measureText(subjectId).width;
-        
-        // Background rect
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-        ctx.fillRect(x, y - 20, textWidth + 8, 18);
-        
-        // Text
-        ctx.fillStyle = '#00ffff';
-        ctx.fillText(subjectId, x + 4, y - 6);
+        // Proof frame — clean ink rectangle
+        ctx.strokeStyle = INK;
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(x, y, width, height);
+
+        // Printer's crop marks — offset registration ticks in grease red
+        const tick = 11;
+        const off = 5;
+        ctx.strokeStyle = GREASE;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        // top-left
+        ctx.moveTo(x - off, y - off + tick); ctx.lineTo(x - off, y - off); ctx.lineTo(x - off + tick, y - off);
+        // top-right
+        ctx.moveTo(x + width + off - tick, y - off); ctx.lineTo(x + width + off, y - off); ctx.lineTo(x + width + off, y - off + tick);
+        // bottom-right
+        ctx.moveTo(x + width + off, y + height + off - tick); ctx.lineTo(x + width + off, y + height + off); ctx.lineTo(x + width + off - tick, y + height + off);
+        // bottom-left
+        ctx.moveTo(x - off + tick, y + height + off); ctx.lineTo(x - off, y + height + off); ctx.lineTo(x - off, y + height + off - tick);
+        ctx.stroke();
+
+        // Caption slug — solid ink tab riding the top edge
+        ctx.font = '600 12px "Spline Sans Mono", ui-monospace, monospace';
+        const label = num;
+        const padX = 6;
+        const tabH = 18;
+        const tabW = ctx.measureText(label).width + padX * 2;
+        ctx.fillStyle = INK;
+        ctx.fillRect(x, y - tabH, tabW, tabH);
+        ctx.fillStyle = PAPER;
+        ctx.textBaseline = 'middle';
+        ctx.fillText(label, x + padX, y - tabH / 2 + 1);
+        ctx.textBaseline = 'alphabetic';
       });
     }
 

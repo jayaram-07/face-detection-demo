@@ -6,9 +6,10 @@ import { StatsPanel } from './components/StatsPanel';
 import { LoadingSpinner } from './components/LoadingSpinner';
 import { FaceMatch } from './components/FaceMatch';
 import { useFaceDetection } from './hooks/useFaceDetection';
-import { NetworkBackground } from './components/NetworkBackground';
-import { CursorSpotlight } from './components/CursorSpotlight';
+import { StudioBackdrop } from './components/StudioBackdrop';
 import { MagneticButton } from './components/MagneticButton';
+
+const slugForMode = { upload: 'Sheet 01 · Upload', camera: 'Sheet 02 · Live', match: 'Sheet 03 · Compare' } as const;
 
 function App() {
   const {
@@ -53,7 +54,7 @@ function App() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'biometric-scan.png';
+      a.download = 'marked-sheet.png';
       a.click();
       setTimeout(() => URL.revokeObjectURL(url), 5000);
     }, 'image/png');
@@ -78,149 +79,146 @@ function App() {
     }
   };
 
+  const primaryBtn =
+    'inline-flex items-center justify-center bg-ink px-7 py-3 font-display text-sm font-semibold text-paper transition-colors hover:bg-ultra focus:outline-none';
+
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-50 pb-20 relative overflow-hidden">
-      <NetworkBackground />
-      <CursorSpotlight />
-      
+    <div className="relative min-h-screen overflow-hidden bg-paper pb-24 text-ink">
+      <StudioBackdrop />
+
       <div className="relative z-10">
         <Hero />
 
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {isLoading ? (
-          <LoadingSpinner />
-        ) : error ? (
-          <div className="text-center p-8 bg-red-900/20 border border-red-500/50 rounded-xl text-red-400 max-w-2xl mx-auto">
-            {error}
-          </div>
-        ) : (
-          <>
-            <ModeTabs mode={mode} setMode={setMode} />
+        <main className="mx-auto max-w-6xl px-6 lg:px-8">
+          {isLoading ? (
+            <LoadingSpinner />
+          ) : error ? (
+            <div className="mx-auto max-w-2xl border-l-2 border-grease bg-panel p-6 text-sm text-ink">
+              {error}
+            </div>
+          ) : (
+            <>
+              <ModeTabs mode={mode} setMode={setMode} />
 
-            <DetectionCard>
-              {mode === 'upload' && (
-                <div 
-                  className={`w-full flex flex-col items-center relative transition-colors duration-200 ${isDragging ? 'bg-cyan-900/20 rounded-xl' : ''}`}
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onDrop={handleDrop}
-                >
-                  {isDragging && (
-                    <div className="absolute inset-0 z-50 flex items-center justify-center border-2 border-dashed border-cyan-400 bg-slate-950/80 rounded-xl backdrop-blur-sm">
-                      <span className="text-2xl font-mono text-cyan-400 font-bold tracking-widest">DROP IMAGE TO SCAN</span>
-                    </div>
-                  )}
-                  <MagneticButton 
-                    as="label"
-                    className="mb-4 cursor-pointer group relative inline-flex items-center justify-center px-8 py-3 font-bold text-cyan-400 transition-all duration-200 bg-slate-900/80 border border-cyan-500/50 hover:bg-cyan-900/30 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-600 focus:ring-offset-slate-900 shadow-[0_0_15px_rgba(0,255,255,0.2)] uppercase tracking-widest font-mono text-sm"
-                  >
-                    <span>Choose Image</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleImageUpload}
-                    />
-                  </MagneticButton>
-                  
-                  <div className="mb-6 flex flex-col items-center gap-2">
-                    <span className="text-xs font-mono text-cyan-600 tracking-widest">OR TRY A SAMPLE:</span>
-                    <div className="flex gap-4">
-                      <button 
-                        onClick={() => loadImageFromUrl('/samples/portrait.jpg')}
-                        className="w-20 h-20 border border-cyan-500/30 hover:border-cyan-400 hover:shadow-[0_0_10px_rgba(0,255,255,0.3)] transition-all overflow-hidden rounded"
-                      >
-                        <img src="/samples/portrait.jpg" alt="Portrait sample" className="w-full h-full object-cover" />
-                      </button>
-                      <button 
-                        onClick={() => loadImageFromUrl('/samples/group.jpg')}
-                        className="w-20 h-20 border border-cyan-500/30 hover:border-cyan-400 hover:shadow-[0_0_10px_rgba(0,255,255,0.3)] transition-all overflow-hidden rounded"
-                      >
-                        <img src="/samples/group.jpg" alt="Group sample" className="w-full h-full object-cover" />
-                      </button>
-                    </div>
-                  </div>
-                  
-                  {imageError && (
-                    <div className="mb-6 text-center p-4 bg-red-900/20 border border-red-500/50 rounded-lg text-red-400 max-w-md mx-auto text-sm">
-                      {imageError}
-                    </div>
-                  )}
-
-                  <div className="relative w-full flex justify-center">
-                    {imageUrl && (
-                      <img
-                        ref={imageRef}
-                        src={imageUrl}
-                        alt="Upload preview"
-                        className="max-w-full max-h-[60vh] rounded-lg object-contain"
-                        onLoad={onImageLoad}
-                        onError={onImageError}
-                      />
-                    )}
-                    <canvas
-                      ref={canvasRef}
-                      className="absolute top-0 left-1/2 -translate-x-1/2 pointer-events-none"
-                    />
-                  </div>
-
-                  {hasDetected && stats.count > 0 && imageUrl && (
-                    <button
-                      onClick={exportScan}
-                      className="mt-6 px-6 py-2.5 font-mono font-bold text-xs uppercase tracking-widest text-cyan-400 border border-cyan-500/50 bg-slate-900/80 hover:bg-cyan-900/30 transition-all shadow-[0_0_15px_rgba(0,255,255,0.15)]"
-                    >
-                      ⤓ Export Scan
-                    </button>
-                  )}
-                </div>
-              )}
-
-              {mode === 'camera' && (
-                <div className="w-full flex flex-col items-center">
-                  <MagneticButton
-                    onClick={toggleCamera}
-                    className={`mb-6 relative inline-flex items-center justify-center px-8 py-3 font-bold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 shadow-[0_0_15px_rgba(0,255,255,0.2)] uppercase tracking-widest font-mono text-sm border ${
-                      isCameraActive 
-                        ? 'text-red-400 bg-slate-900/80 border-red-500/50 hover:bg-red-900/30 focus:ring-red-500 shadow-[0_0_15px_rgba(239,68,68,0.2)]' 
-                        : 'text-cyan-400 bg-slate-900/80 border-cyan-500/50 hover:bg-cyan-900/30 focus:ring-cyan-600'
+              <DetectionCard slug={slugForMode[mode]}>
+                {mode === 'upload' && (
+                  <div
+                    className={`relative flex w-full flex-col items-center transition-colors duration-200 ${
+                      isDragging ? 'bg-ultra/5' : ''
                     }`}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
                   >
-                    {isCameraActive ? 'Stop Camera' : 'Start Camera'}
-                  </MagneticButton>
-
-                  {isCameraActive && (
-                    <div className="mb-4 font-mono text-[11px] tracking-widest text-cyan-500 border border-cyan-500/30 bg-slate-950/70 px-4 py-1.5">
-                      FPS: {telemetry.fps} | DETECT: {telemetry.detectMs}ms
-                    </div>
-                  )}
-
-                  <div className="relative w-full flex justify-center bg-black/50 rounded-lg overflow-hidden min-h-[300px]">
-                    <video
-                      ref={videoRef}
-                      autoPlay
-                      muted
-                      playsInline
-                      onPlay={onVideoPlay}
-                      className={`max-w-full max-h-[60vh] object-contain ${!isCameraActive ? 'hidden' : ''}`}
-                    />
-                    {!isCameraActive && (
-                      <div className="absolute inset-0 flex items-center justify-center text-slate-500">
-                        Camera is inactive
+                    {isDragging && (
+                      <div className="absolute inset-0 z-50 flex items-center justify-center border-2 border-dashed border-ultra bg-panel/85 backdrop-blur-sm">
+                        <span className="label-caption text-lg text-ultra">Drop to place on the sheet</span>
                       </div>
                     )}
-                    <canvas
-                      ref={canvasRef}
-                      className="absolute top-0 left-1/2 -translate-x-1/2 pointer-events-none"
-                    />
-                  </div>
-                </div>
-              )}
-              {mode === 'match' && <FaceMatch />}
-            </DetectionCard>
 
-            {mode !== 'match' && <StatsPanel stats={stats} hasDetected={hasDetected} />}
-          </>
-        )}
+                    <MagneticButton as="label" className={`mb-5 cursor-pointer ${primaryBtn}`}>
+                      <span>Choose a photograph</span>
+                      <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                    </MagneticButton>
+
+                    <div className="mb-7 flex flex-col items-center gap-2">
+                      <span className="label-caption text-[11px] text-graphite">or pull a proof</span>
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => loadImageFromUrl('/samples/portrait.jpg')}
+                          className="h-16 w-16 overflow-hidden border border-rule transition-colors hover:border-ink"
+                        >
+                          <img src="/samples/portrait.jpg" alt="Portrait sample" className="h-full w-full object-cover" />
+                        </button>
+                        <button
+                          onClick={() => loadImageFromUrl('/samples/group.jpg')}
+                          className="h-16 w-16 overflow-hidden border border-rule transition-colors hover:border-ink"
+                        >
+                          <img src="/samples/group.jpg" alt="Group sample" className="h-full w-full object-cover" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {imageError && (
+                      <div className="mx-auto mb-6 max-w-md border-l-2 border-grease bg-paper p-4 text-center text-sm text-ink">
+                        {imageError}
+                      </div>
+                    )}
+
+                    <div className="relative flex w-full justify-center">
+                      {imageUrl && (
+                        <img
+                          ref={imageRef}
+                          src={imageUrl}
+                          alt="Upload preview"
+                          className="max-h-[60vh] max-w-full object-contain"
+                          onLoad={onImageLoad}
+                          onError={onImageError}
+                        />
+                      )}
+                      <canvas
+                        ref={canvasRef}
+                        className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2"
+                      />
+                    </div>
+
+                    {hasDetected && stats.count > 0 && imageUrl && (
+                      <button
+                        onClick={exportScan}
+                        className="mt-7 border border-ink px-6 py-2.5 font-display text-sm font-semibold text-ink transition-colors hover:bg-ink hover:text-paper"
+                      >
+                        Export marked sheet
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {mode === 'camera' && (
+                  <div className="flex w-full flex-col items-center">
+                    <MagneticButton
+                      onClick={toggleCamera}
+                      className={
+                        isCameraActive
+                          ? 'mb-5 inline-flex items-center justify-center border border-grease px-7 py-3 font-display text-sm font-semibold text-grease transition-colors hover:bg-grease hover:text-paper'
+                          : `mb-5 ${primaryBtn}`
+                      }
+                    >
+                      {isCameraActive ? 'Close camera' : 'Open camera'}
+                    </MagneticButton>
+
+                    {isCameraActive && (
+                      <div className="mb-4 border border-rule bg-paper px-4 py-1.5 font-data text-[11px] text-graphite">
+                        {telemetry.fps} fps · {telemetry.detectMs} ms/frame
+                      </div>
+                    )}
+
+                    <div className="relative flex min-h-[300px] w-full justify-center overflow-hidden bg-ink/90">
+                      <video
+                        ref={videoRef}
+                        autoPlay
+                        muted
+                        playsInline
+                        onPlay={onVideoPlay}
+                        className={`max-h-[60vh] max-w-full object-contain ${!isCameraActive ? 'hidden' : ''}`}
+                      />
+                      {!isCameraActive && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <span className="label-caption text-xs text-paper/50">Camera closed</span>
+                        </div>
+                      )}
+                      <canvas
+                        ref={canvasRef}
+                        className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2"
+                      />
+                    </div>
+                  </div>
+                )}
+                {mode === 'match' && <FaceMatch />}
+              </DetectionCard>
+
+              {mode !== 'match' && <StatsPanel stats={stats} hasDetected={hasDetected} />}
+            </>
+          )}
         </main>
       </div>
     </div>

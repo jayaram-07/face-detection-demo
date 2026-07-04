@@ -1,25 +1,38 @@
 import { motion } from 'framer-motion';
-import { ScrambleText } from './ScrambleText';
 
 export function Hero() {
   return (
-    <div className="relative overflow-hidden py-16 sm:py-24 z-10">
-      <div className="mx-auto max-w-7xl px-6 lg:px-8 text-center">
+    <header className="relative z-10 mx-auto max-w-6xl px-6 lg:px-8">
+      {/* masthead */}
+      <div className="flex items-center justify-between border-b border-rule py-4">
+        <span className="label-caption text-[11px] text-ink">Face Studio</span>
+        <span className="label-caption text-[11px] text-graphite">Computer-vision proofing</span>
+      </div>
+
+      <div className="pt-14 pb-10 sm:pt-20 sm:pb-14">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
+          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
         >
-          <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-6xl bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-500 pb-2 font-mono uppercase">
-            <ScrambleText text="Real-Time Face Detection" />
-          </h1>
-          <p className="mt-6 text-lg leading-8 text-cyan-100/70 max-w-2xl mx-auto font-mono text-sm">
-            [ SYSTEM READY ] INITIALIZING BIOMETRIC SCANNER...
+          <div className="mb-4 flex items-center gap-3">
+            <span className="font-data text-xs text-grease">01</span>
+            <span className="h-px w-10 bg-ink" />
+            <span className="label-caption text-[11px] text-graphite">The proof sheet</span>
+          </div>
+
+          <h1 className="font-display text-5xl font-extrabold leading-[0.92] tracking-tight text-ink sm:text-7xl">
+            Face
             <br />
-            AWAITING VISUAL INPUT FOR NEURAL ANALYSIS.
+            Detection
+          </h1>
+
+          <p className="mt-6 max-w-xl text-base leading-relaxed text-graphite">
+            A proofing table for computer vision. Drop a photograph, open the camera, or lay
+            two frames side by side — every face on the sheet gets found, measured and marked.
           </p>
         </motion.div>
       </div>
-    </div>
+    </header>
   );
 }

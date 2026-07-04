@@ -1,6 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import type { FaceStats } from '../hooks/useFaceDetection';
-import { ScrambleText } from './ScrambleText';
 
 interface StatsPanelProps {
   stats: FaceStats;
@@ -9,102 +8,99 @@ interface StatsPanelProps {
 
 export function StatsPanel({ stats, hasDetected }: StatsPanelProps) {
   return (
-    <div className="mt-8 flex flex-col items-center gap-4 w-full max-w-4xl mx-auto">
+    <div className="mx-auto mt-10 flex w-full max-w-3xl flex-col items-center gap-4">
       <AnimatePresence mode="wait">
         {hasDetected && stats.count === 0 && (
           <motion.div
             key="no-faces"
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="w-full bg-slate-950/80 backdrop-blur-md border border-amber-500/30 p-6 shadow-[0_0_20px_rgba(245,158,11,0.1)] font-mono text-amber-400 relative overflow-hidden text-center"
+            exit={{ opacity: 0, y: -12 }}
+            className="w-full border-l-2 border-amber bg-panel p-6 text-center"
           >
-            <div className="absolute inset-0 bg-[linear-gradient(transparent_50%,rgba(245,158,11,0.05)_50%)] bg-[length:100%_4px] pointer-events-none"></div>
-            <div className="relative z-10">
-              <h3 className="text-lg font-bold tracking-widest uppercase mb-2">
-                <ScrambleText text="[ SCAN COMPLETE : NO FACES DETECTED ]" />
-              </h3>
-              <p className="text-sm text-amber-500/80">
-                Try a clearer, front-facing photo or adjust lighting conditions.
-              </p>
-            </div>
+            <h3 className="label-caption mb-1 text-sm text-ink">Nothing on this sheet</h3>
+            <p className="text-sm text-graphite">
+              No faces found. Try a clearer, front-facing photograph or better light.
+            </p>
           </motion.div>
         )}
 
         {stats.count > 0 && (
           <motion.div
             key="faces-detected"
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="w-full bg-slate-950/80 backdrop-blur-md border border-cyan-500/30 p-6 shadow-[0_0_20px_rgba(0,255,255,0.1)] font-mono text-cyan-400 relative overflow-hidden"
+            exit={{ opacity: 0, y: -12 }}
+            className="w-full"
           >
-            {/* Scanline effect */}
-            <div className="absolute inset-0 bg-[linear-gradient(transparent_50%,rgba(0,255,255,0.05)_50%)] bg-[length:100%_4px] pointer-events-none"></div>
-            
-            <div className="relative z-10">
-              <div className="flex justify-between items-center border-b border-cyan-500/30 pb-2 mb-4">
-                <h3 className="text-lg font-bold tracking-widest uppercase">
-                  <ScrambleText text="[ BIOMETRIC SCAN RESULTS ]" />
-                </h3>
-                <div className="text-sm">
-                  FACES DETECTED: {stats.count.toString().padStart(2, '0')}
-                </div>
-              </div>
+            <div className="mb-4 flex items-baseline justify-between border-b border-rule pb-2">
+              <h3 className="label-caption text-sm text-ink">Subjects on sheet</h3>
+              <span className="font-data text-sm text-grease">{stats.count.toString().padStart(2, '0')}</span>
+            </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {stats.faces.map((face, idx) => (
-                  <div key={idx} className="border border-cyan-500/20 p-3 bg-cyan-950/20">
-                    <div className="text-xs text-cyan-500 mb-2">SUBJECT_ID: #{String(idx + 1).padStart(4, '0')}</div>
-                    <div className="grid grid-cols-2 gap-2 text-sm mb-3">
-                      <div>
-                        <span className="text-cyan-600">CONFIDENCE:</span>{' '}
-                        {(face.score * 100).toFixed(1)}%
-                      </div>
-                      <div>
-                        <span className="text-cyan-600">EXPRESSION:</span>{' '}
-                        {face.dominantExpression.toUpperCase()}
-                      </div>
-                      <div>
-                        <span className="text-cyan-600">EST_AGE:</span>{' '}
-                        ~{face.age}
-                      </div>
-                      <div>
-                        <span className="text-cyan-600">GENDER:</span>{' '}
-                        {face.gender.toUpperCase()} ({(face.genderProbability * 100).toFixed(0)}%)
-                      </div>
-                      <div className="col-span-2">
-                        <span className="text-cyan-600">BOUNDING_BOX:</span>{' '}
-                        X:{Math.round(face.box.x)} Y:{Math.round(face.box.y)} W:{Math.round(face.box.width)} H:{Math.round(face.box.height)}
-                      </div>
-                    </div>
-                    
-                    <div className="border-t border-cyan-500/20 pt-2">
-                      <div className="text-xs text-cyan-600 mb-1">EXPRESSION_MATRIX:</div>
-                      <div className="space-y-1">
-                        {Object.entries(face.expressions)
-                          .sort((a, b) => b[1] - a[1])
-                          .map(([emotion, prob]) => (
-                            <div key={emotion} className="flex items-center text-[10px] leading-none">
-                              <div className="w-8 text-cyan-500/80 uppercase">{emotion.substring(0, 3)}</div>
-                              <div className="flex-1 h-1.5 bg-slate-900 mx-2 relative overflow-hidden">
-                                <div 
-                                  className="absolute top-0 left-0 h-full bg-cyan-500 transition-all duration-500 ease-out"
-                                  style={{ width: `${prob * 100}%` }}
-                                />
-                              </div>
-                              <div className="w-8 text-right text-cyan-400">{(prob * 100).toFixed(0)}%</div>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              {stats.faces.map((face, idx) => (
+                <div key={idx} className="border border-rule bg-panel p-4">
+                  <div className="mb-3 flex items-center justify-between">
+                    <span className="label-caption bg-ink px-2 py-0.5 text-[10px] text-paper">
+                      Frame {String(idx + 1).padStart(2, '0')}
+                    </span>
+                    <span className="font-data text-xs text-graphite">
+                      {(face.score * 100).toFixed(0)}% conf
+                    </span>
+                  </div>
+
+                  <div className="mb-3 grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
+                    <Stat label="Expression" value={cap(face.dominantExpression)} />
+                    <Stat label="Est. age" value={`~${face.age}`} />
+                    <Stat label="Read" value={`${cap(face.gender)} · ${(face.genderProbability * 100).toFixed(0)}%`} />
+                    <Stat
+                      label="Frame"
+                      value={`${Math.round(face.box.width)}×${Math.round(face.box.height)}`}
+                      mono
+                    />
+                  </div>
+
+                  <div className="border-t border-rule pt-3">
+                    <div className="label-caption mb-2 text-[10px] text-graphite">Expression exposure</div>
+                    <div className="space-y-1.5">
+                      {Object.entries(face.expressions)
+                        .sort((a, b) => b[1] - a[1])
+                        .map(([emotion, prob]) => (
+                          <div key={emotion} className="flex items-center gap-2 text-[11px]">
+                            <div className="w-9 text-graphite">{cap(emotion.substring(0, 4))}</div>
+                            <div className="relative h-1.5 flex-1 bg-paper">
+                              <div
+                                className="absolute left-0 top-0 h-full bg-ink transition-all duration-500 ease-out"
+                                style={{ width: `${prob * 100}%` }}
+                              />
                             </div>
-                          ))}
-                      </div>
+                            <div className="w-8 text-right font-data text-graphite">
+                              {(prob * 100).toFixed(0)}
+                            </div>
+                          </div>
+                        ))}
                     </div>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
           </motion.div>
         )}
       </AnimatePresence>
     </div>
   );
+}
+
+function Stat({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
+  return (
+    <div className="flex flex-col">
+      <span className="label-caption text-[9px] text-graphite">{label}</span>
+      <span className={mono ? 'font-data text-sm text-ink' : 'text-sm text-ink'}>{value}</span>
+    </div>
+  );
+}
+
+function cap(s: string) {
+  return s.charAt(0).toUpperCase() + s.slice(1);
 }

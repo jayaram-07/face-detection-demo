@@ -1,27 +1,58 @@
 @import "tailwindcss";
 
 @theme {
-  --color-dark-bg: #0f172a;
-  --color-dark-card: rgba(30, 41, 59, 0.7);
-  --color-accent-primary: #3b82f6;
-  --color-accent-secondary: #8b5cf6;
+  /* The Proof Sheet palette */
+  --color-paper: #e9e5dc;
+  --color-panel: #f2efe8;
+  --color-ink: #17150f;
+  --color-graphite: #6a665c;
+  --color-rule: #cfc9bc;
+  --color-ultra: #1f3be0;
+  --color-grease: #da2a1e;
+  --color-amber: #b7770a;
+
+  --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --font-sans: "Archivo", system-ui, sans-serif;
+  --font-caption: "Archivo Narrow", "Archivo", sans-serif;
+  --font-mono: "Spline Sans Mono", ui-monospace, "SF Mono", monospace;
 }
 
 body {
-  @apply bg-slate-950 text-slate-50 min-h-screen font-sans antialiased;
+  @apply bg-paper text-ink min-h-screen antialiased;
+  font-family: var(--font-sans);
 }
 
-/* Custom scrollbar for a premium feel */
+/* Studio caption label — small, spaced, uppercase */
+.label-caption {
+  font-family: var(--font-caption);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-weight: 600;
+}
+
+/* Data / numerics */
+.font-data {
+  font-family: var(--font-mono);
+  font-feature-settings: "tnum" 1;
+}
+
+/* Scrollbar tuned to paper */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 10px;
 }
 ::-webkit-scrollbar-track {
-  background: #0f172a;
+  background: #e9e5dc;
 }
 ::-webkit-scrollbar-thumb {
-  background: #334155;
-  border-radius: 4px;
+  background: #cfc9bc;
+  border: 2px solid #e9e5dc;
+  border-radius: 0;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: #b7b1a2;
+}
+
+::selection {
+  background: #1f3be0;
+  color: #f2efe8;
 }

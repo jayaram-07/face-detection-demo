@@ -7,33 +7,42 @@ interface ModeTabsProps {
 }
 
 export function ModeTabs({ mode, setMode }: ModeTabsProps) {
-  const tabs: { id: DetectionMode; label: string }[] = [
-    { id: 'upload', label: 'IMAGE_UPLOAD' },
-    { id: 'camera', label: 'LIVE_FEED' },
-    { id: 'match', label: 'FACE_MATCH' },
+  const tabs: { id: DetectionMode; label: string; n: string }[] = [
+    { id: 'upload', label: 'Upload', n: '01' },
+    { id: 'camera', label: 'Live', n: '02' },
+    { id: 'match', label: 'Compare', n: '03' },
   ];
 
   return (
-    <div className="flex space-x-2 bg-slate-950/80 backdrop-blur-md p-1 border border-cyan-500/30 w-fit mx-auto mb-8 font-mono text-sm">
-      {tabs.map((tab) => (
-        <button
-          key={tab.id}
-          onClick={() => setMode(tab.id)}
-          className={`relative px-6 py-2.5 font-bold tracking-widest transition-colors duration-200 outline-none uppercase ${
-            mode === tab.id ? 'text-slate-950' : 'text-cyan-600 hover:text-cyan-400'
-          }`}
-        >
-          {mode === tab.id && (
-            <motion.div
-              layoutId="active-tab"
-              className="absolute inset-0 bg-cyan-400 shadow-[0_0_10px_rgba(0,255,255,0.5)]"
-              initial={false}
-              transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-            />
-          )}
-          <span className="relative z-10">{tab.label}</span>
-        </button>
-      ))}
+    <div className="mx-auto mb-10 flex w-fit items-end gap-8 border-b border-rule">
+      {tabs.map((tab) => {
+        const active = mode === tab.id;
+        return (
+          <button
+            key={tab.id}
+            onClick={() => setMode(tab.id)}
+            className="relative flex items-baseline gap-2 pb-3 outline-none"
+          >
+            <span className={`font-data text-[11px] ${active ? 'text-grease' : 'text-graphite/60'}`}>
+              {tab.n}
+            </span>
+            <span
+              className={`label-caption text-sm transition-colors ${
+                active ? 'text-ink' : 'text-graphite hover:text-ink'
+              }`}
+            >
+              {tab.label}
+            </span>
+            {active && (
+              <motion.span
+                layoutId="tab-underline"
+                className="absolute -bottom-px left-0 right-0 h-0.5 bg-ultra"
+                transition={{ type: 'spring', stiffness: 500, damping: 40 }}
+              />
+            )}
+          </button>
+        );
+      })}
     </div>
   );
 }
