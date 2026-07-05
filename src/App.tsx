@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Hero } from './components/Hero';
 import { ModeTabs } from './components/ModeTabs';
 import { DetectionCard } from './components/DetectionCard';
@@ -36,6 +36,7 @@ function App() {
   } = useFaceDetection();
 
   const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const exportScan = () => {
     const img = imageRef.current;
@@ -116,9 +117,21 @@ function App() {
                       </div>
                     )}
 
-                    <MagneticButton as="label" className={`mb-5 cursor-pointer ${primaryBtn}`}>
-                      <span>Choose a photograph</span>
-                      <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                    {/* Stable file input kept OUTSIDE the animated button — the magnetic
+                        button re-renders on every mouse move, which would remount (and orphan)
+                        an input nested inside it, dropping the selected file. */}
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleImageUpload}
+                    />
+                    <MagneticButton
+                      onClick={() => fileInputRef.current?.click()}
+                      className={`mb-5 cursor-pointer ${primaryBtn}`}
+                    >
+                      Choose a photograph
                     </MagneticButton>
 
                     <div className="mb-7 flex flex-col items-center gap-2">

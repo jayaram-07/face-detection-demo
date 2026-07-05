@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useMemo } from 'react';
 import type { ReactNode, ElementType } from 'react';
 import { motion } from 'framer-motion';
 
@@ -26,7 +26,11 @@ export function MagneticButton({ children, onClick, className = '', as = 'button
     setPosition({ x: 0, y: 0 });
   };
 
-  const Component = motion.create(as as any);
+  // Create the motion component once per `as` value. Calling motion.create()
+  // during render returns a new component type each time, which makes React
+  // unmount/remount the entire subtree (including any nested inputs) on every
+  // re-render — and this button re-renders constantly from the magnetic effect.
+  const Component = useMemo(() => motion.create(as as any), [as]);
 
   return (
     <motion.div
