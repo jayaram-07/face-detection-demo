@@ -1,0 +1,7 @@
+Sample photographs used in the "pull a proof" demo.
+Both are real photographs from Pexels (free to use, no attribution required — credited here as courtesy).
+
+portrait.jpg  — https://www.pexels.com/photo/30161439/
+group.jpg     — https://www.pexels.com/photo/7325567/
+
+Pexels License: https://www.pexels.com/license/
